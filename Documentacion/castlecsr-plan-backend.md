@@ -73,9 +73,6 @@ castlecsr-backend/
 │   │       ├── application.properties      # Configuración general
 │   │       ├── application-dev.properties  # Perfil de desarrollo
 │   │       ├── application-prod.properties # Perfil de producción
-│   │       ├── db/
-│   │       │   └── migration/
-│   │       │       └── V1__init_schema.sql # Script inicial de BD
 │   │       └── static/                     # Frontend (index.html, login.html, etc.)
 │   │
 │   └── test/
@@ -183,7 +180,7 @@ curl http://localhost:8080/api/health
    - `POST /api/auth/login` → valida, crea sesión
    - `GET /api/auth/session` → devuelve usuario autenticado o 401
    - `POST /api/auth/logout` → invalida sesión
-5. Seed de usuarios en BD (desde script SQL en `resources/db/migration/`)
+5. Seed de usuarios en BD (crear datos desde código Java o SQL directo)
 6. CORS: permitir requests desde frontend local (localhost:3000 u otro puerto)
 7. Tests básicos: `AuthControllerTest.java`
 
@@ -537,7 +534,7 @@ curl http://localhost:8080/api/health
 - [ ] `CustomUserDetailsService.java` → valida contra BD
 - [ ] `AuthController.java` → login, session, logout
 - [ ] DTOs: `LoginRequest`, `SessionResponse`
-- [ ] Seed de usuarios en BD
+- [ ] Usuarios de prueba en BD (creados vía código o SQL directo)
 - [ ] Frontend `login.html` conectado
 - [ ] Tests: `AuthControllerTest.java`
 - [ ] Tag `v1.0.0-phase2` creado

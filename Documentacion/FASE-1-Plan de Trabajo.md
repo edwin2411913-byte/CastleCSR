@@ -88,8 +88,9 @@ mkdir -p src/main/java/com/castlecsr/{model,repository,controller,service,dto,ex
 
 # Subcarpetas en resources
 mkdir -p src/main/resources/static/{css,js}
-mkdir -p src/main/resources/db/migration
 ```
+
+**Nota:** No es necesario crear `db/migration/` porque usamos Hibernate DDL auto para crear tablas automáticamente.
 
 ### 1.4 Crear archivo .gitignore
 

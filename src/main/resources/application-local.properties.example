@@ -1,0 +1,45 @@
+# ============================================================
+# Local Development Profile - TEMPLATE
+# ============================================================
+# INSTRUCCIONES:
+# 1. Copiar este archivo a application-local.properties
+# 2. Reemplazar los valores de placeholder con tus valores locales
+# 3. application-local.properties NO va a Git (está en .gitignore)
+# ============================================================
+
+# Database - cargar desde variables de entorno (.env)
+# Por defecto conecta a localhost:5432/castlecsr
+spring.datasource.url=${DB_URL:jdbc:postgresql://localhost:5432/castlecsr}
+spring.datasource.username=${DB_USERNAME:postgres}
+spring.datasource.password=${DB_PASSWORD:postgres}
+
+# Hibernate - más verbose en desarrollo
+# Mostrar SQL ejecutado en consola
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.properties.hibernate.use_sql_comments=true
+
+# Logging - más detallado para desarrollo
+# DEBUG para ver más información de la aplicación
+logging.level.root=INFO
+logging.level.com.castlecsr=DEBUG
+logging.level.org.springframework.web=DEBUG
+logging.level.org.springframework.security=DEBUG
+logging.level.org.hibernate.SQL=DEBUG
+logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
+
+# CORS for local development
+# Permite requests desde localhost
+server.servlet.context-path=/
+
+# ============================================================
+# VARIABLES DE ENTORNO REQUERIDAS (.env)
+# ============================================================
+# Asegúrate de tener estas variables en tu archivo .env:
+#
+# DB_URL=jdbc:postgresql://localhost:5432/castlecsr
+# DB_USERNAME=castlecsr_user
+# DB_PASSWORD=tu_contraseña_segura_aqui
+# JWT_SECRET=tu_secreto_jwt_minimo_32_caracteres_aqui
+#
+# ============================================================

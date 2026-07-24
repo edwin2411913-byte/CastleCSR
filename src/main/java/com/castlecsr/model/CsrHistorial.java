@@ -42,7 +42,7 @@ public class CsrHistorial {
     @Column(nullable = false, length = 10)
     private String algoritmo;
 
-    @Column(nullable = false, length = 20)
+    @Column(name = "tamano_o_curva", nullable = false, length = 20)
     private String tamanioOCurva;
 
     @Column(nullable = false, columnDefinition = "TEXT")
