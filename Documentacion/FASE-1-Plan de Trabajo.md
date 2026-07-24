@@ -251,6 +251,13 @@ Crear archivo `castlecsr-backend/pom.xml`:
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- DotEnv for loading .env files -->
+        <dependency>
+            <groupId>io.github.cdimascio</groupId>
+            <artifactId>dotenv-java</artifactId>
+            <version>3.0.0</version>
+        </dependency>
     </dependencies>
 
     <build>
