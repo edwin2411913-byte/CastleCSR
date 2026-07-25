@@ -99,6 +99,21 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(401).body(error);
     }
 
+    @ExceptionHandler(CsrGenerationException.class)
+    public ResponseEntity<ErrorResponse> handleCsrGeneration(CsrGenerationException ex) {
+        ErrorResponse error = new ErrorResponse(400, "Bad Request", ex.getMessage());
+        logger.warn("CSR generation error: {}", ex.getMessage());
+        return ResponseEntity.status(400).body(error);
+    }
+
+    @ExceptionHandler(CryptographyException.class)
+    public ResponseEntity<ErrorResponse> handleCryptography(CryptographyException ex) {
+        // No exponer detalles internos de la librería criptográfica
+        ErrorResponse error = new ErrorResponse(500, "Internal Server Error", "Error criptográfico");
+        logger.error("Cryptography error: ", ex);
+        return ResponseEntity.status(500).body(error);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(
             IllegalArgumentException ex,

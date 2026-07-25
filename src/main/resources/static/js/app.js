@@ -129,7 +129,7 @@
       const row = document.createElement('div');
       row.className = 'san-row';
       row.innerHTML =
-        '<input class="input" placeholder="DNS:ejemplo.com o IP:10.0.0.1" value="' + (value || '') + '">' +
+        '<input class="input" placeholder="ejemplo.com o 10.0.0.1" value="' + (value || '') + '">' +
         '<button type="button" class="btn btn-ghost btn-icon" aria-label="Quitar">×</button>';
       row.querySelector('button').addEventListener('click', function () {
         if (sanList.children.length > 1) {
@@ -183,9 +183,11 @@
     // ---- SAN format validation ----
     function validateSanFormat(san) {
       if (!san) return true; // vacío es válido (opcional)
-      // Validar formato: DNS:xxx o IP:xxx
-      const sanRegex = /^(DNS|IP):(.+)$/i;
-      return sanRegex.test(san);
+      // Validar formato: dominio o IP sin prefijo, DNS:xxx o IP:xxx
+      const prefixedRegex = /^(DNS|IP):(.+)$/i;
+      const domainRegex = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/i;
+      const ipv6Regex = /^[0-9a-f:]+$/i;
+      return prefixedRegex.test(san) || domainRegex.test(san) || (san.indexOf(':') !== -1 && ipv6Regex.test(san));
     }
   
     function getSanValues() {
@@ -224,7 +226,7 @@
       const sanValues = getSanValues();
       for (let i = 0; i < sanValues.length; i++) {
         if (!validateSanFormat(sanValues[i])) {
-          formError.textContent = 'SAN inválido: usar formato DNS:ejemplo.com o IP:10.0.0.1';
+          formError.textContent = 'SAN inválido: usar ejemplo.com o 10.0.0.1 (los prefijos DNS: e IP: son opcionales)';
           formError.classList.add('visible');
           return;
         }
@@ -240,7 +242,8 @@
         l: document.getElementById('l').value,
         sans: sanValues,
         keyType: keyType,
-        password: pw
+        password: pw,
+        passwordConfirm: pw2
       };
       if (keyType === 'RSA') {
         payload.keySize = document.querySelector('input[name="keysize"]:checked').value;

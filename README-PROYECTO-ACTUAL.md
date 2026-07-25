@@ -1,6 +1,6 @@
 # 🏰 CastleCSR Backend - Guía de Inicio Rápido
 
-**Status:** ✅ Fase 1 Completada  
+**Status:** ✅ Fase 3 Completada (Generación de CSR con BouncyCastle)  
 **Última actualización:** 2026-07-24  
 **Versión:** 1.0.0-SNAPSHOT
 
@@ -26,6 +26,12 @@ cp .env.example .env
 # 4. Verificar
 curl http://localhost:8080/api/health
 # {"status":"OK",...}
+
+# 5. Login (Fase 2)
+curl -i -c cookies.txt -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"tu_password"}'
+# → 200 OK + cookie HttpOnly auth_token
 ```
 
 ---
@@ -35,7 +41,9 @@ curl http://localhost:8080/api/health
 ```
 CastleCSR/
 ├── README-PROYECTO-ACTUAL.md        ← Este archivo (COMIENZA AQUÍ)
-├── FASE1-COMPLETADA.md               ← Estado actual detallado
+├── FASE1-COMPLETADA.md               ← Resumen Fase 1 (scaffold)
+├── FASE2-COMPLETADA.md               ← Resumen Fase 2 (autenticación JWT)
+├── FASE3-COMPLETADA.md               ← Resumen Fase 3 (generación CSR)
 ├── .env.example                      ← Template de variables (en Git)
 ├── .env                              ← Tus valores locales (NO en Git)
 ├── pom.xml                           ← Maven: dependencias
@@ -46,17 +54,36 @@ CastleCSR/
 │   ├── RESUMEN-EJECUTIVO.md         ← Visión general
 │   ├── castlecsr-plan-backend.md    ← Plan 5 fases
 │   ├── FASE-1-Plan de Trabajo.md    ← Detalles Fase 1
+│   ├── FASE-2-Plan_de_Trabajo_Nimbus_JOSE_JWT_v2.md  ← Detalles Fase 2
+│   ├── FASE-2-Propuesta-Codigo-Autenticacion.md      ← Código Fase 2
+│   ├── FASE-2-Tests-Unitarios.md    ← Tests Fase 2
+│   ├── FASE-3-Plan_de_Trabajo.md    ← Detalles Fase 3
+│   ├── FASE-3-Propuesta-Codigo.md   ← Código Fase 3
 │   └── PROTECCION-SECRETOS.md       ← Seguridad profunda
 │
 ├── src/main/java/com/castlecsr/
 │   ├── CastlecsrBackendApplication.java  ← Clase principal
 │   │
 │   ├── config/
-│   │   ├── SecurityConfig.java           ← Spring Security
+│   │   ├── SecurityConfig.java           ← Spring Security (stateless + JWT)
+│   │   ├── CryptographyConfig.java       ← Provider BouncyCastle (Fase 3)
 │   │   └── EnvConfig.java                ← Cargar .env
 │   │
 │   ├── controller/
-│   │   └── HealthController.java         ← GET /api/health, /api/info
+│   │   ├── HealthController.java         ← GET /api/health, /api/info
+│   │   ├── AuthController.java           ← POST /api/auth/login, logout, session
+│   │   └── CsrController.java            ← POST /api/csr/generar (Fase 3)
+│   │
+│   ├── service/
+│   │   ├── CryptographyService.java      ← Claves RSA/EC, CSR PKCS#10, AES (Fase 3)
+│   │   └── CsrService.java               ← Validación y orquestación CSR (Fase 3)
+│   │
+│   ├── security/
+│   │   ├── JwtTokenProvider.java         ← Generación/validación JWT (Nimbus)
+│   │   ├── JwtAuthenticationFilter.java  ← Valida token en cada request
+│   │   ├── JwtAuthenticationEntryPoint.java ← Respuestas 401 en JSON
+│   │   ├── CustomUserDetailsService.java ← Carga usuarios desde BD
+│   │   └── CookieUtil.java               ← Cookie HttpOnly auth_token
 │   │
 │   ├── model/
 │   │   ├── Usuario.java                  ← Entidad JPA
@@ -69,14 +96,24 @@ CastleCSR/
 │   ├── dto/
 │   │   ├── HealthResponse.java           ← DTOs
 │   │   ├── ErrorResponse.java
-│   │   └── SessionResponse.java
+│   │   ├── SessionResponse.java
+│   │   ├── LoginRequest.java             ← Login (username + password)
+│   │   ├── CsrGenerationRequest.java     ← Request CSR (Fase 3)
+│   │   └── CsrGenerationResponse.java    ← Response CSR (Fase 3)
 │   │
 │   └── exception/
-│       └── GlobalExceptionHandler.java   ← Manejo de errores
+│       ├── GlobalExceptionHandler.java   ← Manejo de errores
+│       ├── InvalidTokenException.java    ← Token JWT inválido
+│       ├── ExpiredTokenException.java    ← Token JWT expirado
+│       ├── CryptographyException.java    ← Errores de criptografía (Fase 3)
+│       └── CsrGenerationException.java   ← Errores de generación CSR (Fase 3)
 │
 ├── src/main/resources/
 │   ├── application.properties            ← Configuración por defecto
-│   └── application-local.properties      ← Configuración desarrollo
+│   ├── application-local.properties      ← Configuración desarrollo
+│   └── static/                           ← Frontend (login.html, index.html, js, css)
+│
+├── src/test/java/com/castlecsr/          ← 12 clases de test (56 tests)
 │
 └── target/                               ← Artifacts compilados (gitignore)
 ```
@@ -119,8 +156,10 @@ cp .env.example .env
 DB_URL=jdbc:postgresql://localhost:5432/castlecsr
 DB_USERNAME=castlecsr_user
 DB_PASSWORD=castlecsr_password_123
-JWT_SECRET=abc123def456ghi789jkl012mno345pqr
+JWT_SECRET=<generar con: openssl rand -base64 64>
 ```
+
+> ⚠️ **JWT_SECRET** debe ser un valor Base64 de al menos 64 bytes (requisito del algoritmo HS512). Generarlo con `openssl rand -base64 64`.
 
 ### Paso 3: Ejecutar Aplicación
 
@@ -158,8 +197,15 @@ curl http://localhost:8080/api/health
 # Info
 curl http://localhost:8080/api/info
 
-# Endpoint protegido (debe dar 401)
-curl http://localhost:8080/api/csr/historial
+# Endpoint protegido sin login (debe dar 401)
+curl http://localhost:8080/api/auth/session
+
+# Login y uso de la cookie
+curl -i -c cookies.txt -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"tu_password"}'
+curl -b cookies.txt http://localhost:8080/api/auth/session
+# → {"id":1,"username":"admin","rol":"ADMIN"}
 ```
 
 ---
@@ -178,7 +224,7 @@ curl http://localhost:8080/api/csr/historial
 
 ---
 
-## ✅ Estado Actual (Fase 1)
+## ✅ Estado Actual (Fase 3)
 
 | Componente | Status | Detalles |
 |-----------|--------|----------|
@@ -186,23 +232,33 @@ curl http://localhost:8080/api/csr/historial
 | **Base de Datos** | ✅ | PostgreSQL conectado, 2 tablas |
 | **Entidades JPA** | ✅ | Usuario, CsrHistorial |
 | **Repositorios** | ✅ | UsuarioRepository, CsrHistorialRepository |
-| **Controlador** | ✅ | HealthController (/api/health, /api/info) |
-| **Seguridad** | ✅ | Spring Security, BCrypt, CORS |
-| **Manejo de Errores** | ✅ | GlobalExceptionHandler |
+| **Controladores** | ✅ | HealthController, AuthController |
+| **Autenticación JWT** | ✅ | Nimbus JOSE+JWT 9.25.6, HS512, cookie HttpOnly |
+| **Login / Logout / Session** | ✅ | /api/auth/login, /api/auth/logout, /api/auth/session |
+| **Seguridad** | ✅ | Spring Security stateless, BCrypt, CORS |
+| **Manejo de Errores** | ✅ | GlobalExceptionHandler + errores de token |
+| **Generación CSR** | ✅ | BouncyCastle 1.85: RSA/EC, PKCS#10, AES-256 (Fase 3) |
+| **SANs flexibles** | ✅ | Opcionales; prefijos DNS:/IP: opcionales (auto-detección) |
+| **Frontend** | ✅ | login.html + index.html con formulario de CSR |
+| **Tests** | ✅ | 56 tests (unitarios + integración) |
 | **Configuración** | ✅ | application.properties + .env |
-| **Git** | ✅ | Tag v1.0.0-phase1 |
+| **Git** | ✅ | Tags v1.0.0-phase1, v1.0.0-phase2 |
 
 ---
 
 ## 🔒 Seguridad Configurada
 
 ```
-✅ CORS: localhost:3000, localhost:8080
+✅ JWT firmado con HS512 (Nimbus JOSE+JWT)
+✅ Cookie HttpOnly + SameSite=Strict (anti-XSS y anti-CSRF)
+✅ Sesiones stateless (sin estado en servidor)
+✅ Expiración de token: 30 minutos
+✅ CORS: localhost:3000, localhost:8080 (con credentials)
 ✅ BCrypt: Hash seguro de contraseñas
 ✅ Spring Security: Control de acceso
 ✅ .gitignore: .env excluido de Git
-✅ Endpoints públicos: Solo /api/health, /api/info
-✅ Endpoints protegidos: Requieren autenticación (Fase 2)
+✅ Endpoints públicos: /api/health, /api/info, /api/auth/login, login.html
+✅ Endpoints protegidos: Requieren cookie JWT válida (401 JSON si no)
 ```
 
 ---
@@ -302,6 +358,20 @@ mvn --version       # Verificar Maven 3.8+
 - Tiene: `.requestMatchers("/api/health").permitAll()`
 - Tiene: `@Configuration` y `@EnableWebSecurity`
 
+### "The secret length must be at least 512 bits"
+
+```bash
+# El JWT_SECRET es muy corto para HS512. Generar uno nuevo:
+openssl rand -base64 64
+# Copiar la salida completa a .env como JWT_SECRET
+```
+
+### "Login OK pero /api/auth/session devuelve 401"
+
+- El token expira a los 30 minutos → hacer login de nuevo
+- Desde el frontend, usar `fetch(..., { credentials: 'include' })`
+- Ver más casos en `FASE2-COMPLETADA.md`
+
 ---
 
 ## 📊 Endpoints Actuales
@@ -309,17 +379,27 @@ mvn --version       # Verificar Maven 3.8+
 ### Públicos ✅
 
 ```
-GET  /api/health    → Health check (200 OK)
-GET  /api/info      → Info de app (200 OK)
+GET  /api/health              → Health check (200 OK)
+GET  /api/info                → Info de app (200 OK)
+POST /api/auth/login          → Login, devuelve cookie auth_token ✅ Fase 2
+GET  /login.html              → Página de login ✅ Fase 2
 ```
 
-### Protegidos (Próximamente)
+### Protegidos (requieren cookie JWT) ✅
 
 ```
-POST /api/auth/login          → Login (Fase 2)
-GET  /api/auth/session        → Sesión actual (Fase 2)
-POST /api/auth/logout         → Logout (Fase 2)
-POST /api/csr/generar         → Generar CSR (Fase 3)
+GET  /api/auth/session        → Sesión actual {id, username, rol} ✅ Fase 2
+POST /api/auth/logout         → Logout, expira la cookie ✅ Fase 2
+GET  /                        → index.html (página principal) ✅ Fase 2
+POST /api/csr/generar         → Generar CSR + clave cifrada ✅ Fase 3
+```
+
+> **SANs en /api/csr/generar:** opcionales. Se aceptan `ejemplo.com`, `10.0.0.1`,
+> `DNS:ejemplo.com` o `IP:10.0.0.1` (los prefijos son opcionales, con auto-detección DNS/IP).
+
+### Próximamente
+
+```
 GET  /api/csr/historial       → Listar CSRs (Fase 4)
 GET  /api/csr/{id}            → Detalles CSR (Fase 4)
 ```
@@ -333,9 +413,10 @@ GET  /api/csr/{id}            → Detalles CSR (Fase 4)
 | **Java** | 21 | Lenguaje principal |
 | **Spring Boot** | 4.1.0 | Framework web |
 | **Spring Security** | Boot 4.1.0 | Autenticación |
+| **Nimbus JOSE+JWT** | 9.25.6 | Tokens JWT (HS512) |
 | **Hibernate/JPA** | Boot 4.1.0 | ORM |
 | **PostgreSQL** | 12+ | Base de datos |
-| **BouncyCastle** | 1.85 | Criptografía |
+| **BouncyCastle** | 1.85 | Criptografía CSR (RSA/EC, PKCS#10, AES) |
 | **Maven** | 3.8+ | Build tool |
 | **JUnit 5** | Test | Testing |
 
@@ -343,17 +424,20 @@ GET  /api/csr/{id}            → Detalles CSR (Fase 4)
 
 ## 🎯 Próximas Fases
 
-### Fase 2: Autenticación (1 semana)
-- Implementar login real
-- JWT (JSON Web Tokens)
-- CustomUserDetailsService
-- Tests de autenticación
+### ✅ Fase 2: Autenticación (COMPLETADA)
+- Login real con JWT (Nimbus JOSE+JWT, HS512)
+- Cookie HttpOnly + sesiones stateless
+- CustomUserDetailsService + filtro JWT
+- 33 tests de autenticación
+- Ver `FASE2-COMPLETADA.md` para detalles
 
-### Fase 3: Generación CSR (2 semanas)
-- BouncyCastle: generar CSR
-- Cifrado de claves privadas
-- Descarga de archivos
-- Validación de entrada
+### ✅ Fase 3: Generación CSR (COMPLETADA)
+- BouncyCastle: claves RSA/EC + CSR PKCS#10 en PEM
+- Cifrado de clave privada AES-256 (PKCS#8 + PBKDF2)
+- SANs opcionales, prefijos DNS:/IP: opcionales (auto-detección)
+- Descarga de .csr y .key desde el frontend
+- 23 tests nuevos (56 en total)
+- Ver `FASE3-COMPLETADA.md` para detalles
 
 ### Fase 4: Historial CSR (1 semana)
 - Queries paginadas

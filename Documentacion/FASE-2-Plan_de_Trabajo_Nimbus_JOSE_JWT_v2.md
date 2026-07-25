@@ -1,4 +1,4 @@
-# 🔐 Plan de Trabajo - Fase 2: Autenticación y Autorización
+ # 🔐 Plan de Trabajo - Fase 2: Autenticación y Autorización
 
 ## 🎯 Objetivos
 1. Implementar autenticación basada en JWT usando la librería Nimbus JOSE+JWT
