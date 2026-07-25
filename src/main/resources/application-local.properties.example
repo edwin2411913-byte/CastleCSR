@@ -32,6 +32,13 @@ logging.level.org.hibernate.type.descriptor.sql.BasicBinder=TRACE
 # Permite requests desde localhost
 server.servlet.context-path=/
 
+# JWT (Fase 2) - secreto Base64 de 64 bytes cargado desde .env
+# Generar con: openssl rand -base64 64
+jwt.secret=${JWT_SECRET:default-secret}
+jwt.expiration-ms=1800000
+# false en local (sin HTTPS); true en prod
+jwt.cookie-secure=false
+
 # ============================================================
 # VARIABLES DE ENTORNO REQUERIDAS (.env)
 # ============================================================

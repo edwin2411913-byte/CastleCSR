@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CastleCSR — Generar CSR</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<nav class="nav">
+  <span class="nav-brand">CastleCSR</span>
+  <span id="username-slot" class="username-slot"></span>
+  <button id="logout-btn" class="btn btn-ghost" style="margin-left: auto;">Cerrar sesión</button>
+</nav>
+
+<main class="dashboard-main">
+
+  <section>
+    <h1 class="section-title">Generar nuevo CSR</h1>
+
+    <form id="csr-form" class="csr-form">
+      <div class="field-2">
+        <div class="field"><label for="cn">Common Name (CN) *</label><input class="input" id="cn" name="cn" required></div>
+        <div class="field"><label for="o">Organización (O) *</label><input class="input" id="o" name="o" required></div>
+        <div class="field"><label for="ou">Unidad Organizativa (OU)</label><input class="input" id="ou" name="ou"></div>
+        <div class="field"><label for="c">País (C) *</label><input class="input" id="c" name="c" required maxlength="2" pattern="[A-Z]{2}" placeholder="MX" title="Código ISO 3166-1 alpha-2 (ej: MX, US, ES)"></div>
+        <div class="field"><label for="st">Provincia/Estado (ST) *</label><input class="input" id="st" name="st" required></div>
+        <div class="field"><label for="l">Localidad (L) *</label><input class="input" id="l" name="l" required></div>
+      </div>
+
+      <div class="field">
+        <label>SAN — Nombres alternativos (opcional)</label>
+        <p style="font-size:12px;color:var(--color-neutral-700);margin:0 0 var(--space-2)">Ej: DNS:ejemplo.com, IP:10.0.0.1</p>
+        <div id="san-list" class="san-list"></div>
+        <button type="button" id="add-san" class="btn btn-secondary" style="margin-top:var(--space-2);width:fit-content">+ Agregar</button>
+      </div>
+
+      <div class="field">
+        <label id="keytype-label">Tipo de clave</label>
+        <div class="seg seg-group" role="radiogroup" aria-labelledby="keytype-label">
+          <label class="seg-opt"><input type="radio" name="keytype" value="RSA" checked>RSA</label>
+          <label class="seg-opt"><input type="radio" name="keytype" value="EC">Curva elíptica (EC)</label>
+        </div>
+      </div>
+
+      <div class="field" id="keysize-field">
+        <label id="keysize-label">Tamaño de clave</label>
+        <div class="seg seg-group" role="radiogroup" aria-labelledby="keysize-label">
+          <label class="seg-opt"><input type="radio" name="keysize" value="2048" checked>2048</label>
+          <label class="seg-opt"><input type="radio" name="keysize" value="4096">4096</label>
+        </div>
+      </div>
+      <div class="field" id="curve-field" style="display:none">
+        <label id="curve-label">Curva</label>
+        <div class="seg seg-group" role="radiogroup" aria-labelledby="curve-label">
+          <label class="seg-opt"><input type="radio" name="curve" value="secp256r1" checked>secp256r1</label>
+          <label class="seg-opt"><input type="radio" name="curve" value="secp384r1">secp384r1</label>
+        </div>
+      </div>
+
+      <div class="field-2">
+        <div class="field">
+          <label for="pw">Contraseña de protección *</label>
+          <input class="input" id="pw" name="pw" type="password" required>
+          <p id="pw-strength" style="font-size:12px;color:var(--color-neutral-700);margin:4px 0 0"></p>
+        </div>
+        <div class="field"><label for="pw2">Confirmar contraseña *</label><input class="input" id="pw2" name="pw2" type="password" required></div>
+      </div>
+
+      <p id="form-error" class="form-error"></p>
+
+      <button type="submit" id="generate-btn" class="btn btn-primary" style="width:fit-content;margin-left:auto">Generar CSR</button>
+    </form>
+
+    <div id="result-panel" class="result-panel">
+      <p>CSR generado correctamente.</p>
+      <div class="result-actions">
+        <a id="download-csr" href="#" class="btn btn-secondary">Descargar .csr</a>
+        <a id="download-key" href="#" class="btn btn-secondary">Descargar .key (cifrado)</a>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-subtitle">Historial de CSR generados</h2>
+    <table id="history-table" class="table" style="display:none">
+      <thead><tr><th>Fecha</th><th>Common Name</th><th>Algoritmo</th><th>Organización</th></tr></thead>
+      <tbody id="history-body"></tbody>
+    </table>
+    <p id="empty-history" class="empty-history" style="display:none">Aún no hay CSR generados.</p>
+  </section>
+
+</main>
+
+<script src="js/app.js"></script>
+</body>
+</html>

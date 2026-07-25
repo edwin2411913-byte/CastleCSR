@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CastleCSR — Iniciar sesión</title>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div class="login-page">
+  <div class="login-card">
+    <svg class="login-icon" width="30" height="30" viewBox="0 0 256 256" fill="var(--color-accent-700)">
+      <path opacity="0.25" d="M208,88H176V56a48,48,0,0,0-96,0V88H48a8,8,0,0,0-8,8V208a8,8,0,0,0,8,8H208a8,8,0,0,0,8-8V96A8,8,0,0,0,208,88Z"></path>
+      <path d="M208,80H176V56a48,48,0,0,0-96,0V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80ZM96,56a32,32,0,0,1,64,0V80H96ZM208,208H48V96H208V208Zm-68-56a12,12,0,1,1-12-12A12,12,0,0,1,140,152Z"></path>
+    </svg>
+
+    <h1 class="login-title">CastleCSR</h1>
+    <p class="login-subtitle">Inicia sesión para generar tus CSR</p>
+
+    <form id="login-form" class="login-form">
+      <div class="field">
+        <label for="username">Usuario</label>
+        <input class="input" id="username" name="username" type="text" autocomplete="username" required style="width:100%;box-sizing:border-box">
+      </div>
+
+      <div class="field">
+        <label for="password">Contraseña</label>
+        <div class="password-field-wrap">
+          <input class="input" id="password" name="password" type="password" autocomplete="current-password" required style="width:100%;box-sizing:border-box;padding-right:44px">
+          <button type="button" id="toggle-password" class="password-toggle" aria-label="Mostrar contraseña">
+            <svg id="icon-eye" width="18" height="18" viewBox="0 0 256 256" fill="currentColor"><path opacity="0.25" d="M128,56C48,56,16,128,16,128s32,72,112,72,112-72,112-72S208,56,128,56Z"></path><path d="M128,64c-58.62,0-98.28,50.19-105.28,60.19a8,8,0,0,0,0,7.62C29.72,141.81,69.38,192,128,192s98.28-50.19,105.28-60.19a8,8,0,0,0,0-7.62C226.28,114.19,186.62,64,128,64Zm0,112a48,48,0,1,1,48-48A48.05,48.05,0,0,1,128,176Z"></path></svg>
+            <svg id="icon-eye-off" width="18" height="18" viewBox="0 0 256 256" fill="currentColor" style="display:none"><path opacity="0.25" d="M53.92,34.62,222.62,203.32a8,8,0,0,1-11.31,11.31L211,214.31a112.31,112.31,0,0,1-83,34.34c-59.35,0-100.94-53.67-108-64.31a8,8,0,0,1,0-7.62c3-4.55,15.06-22,33.06-38.65L42.62,45.93A8,8,0,1,1,53.92,34.62Z"></path><path d="M42.31,133.16C49.31,143.66,90.65,197.33,150,197.33a94.62,94.62,0,0,0,54.71-17.66l-24.6-24.6a48,48,0,0,1-64.55-64.55l-27.8-27.8C67.28,74.66,52.28,90.34,42.31,105.53A8,8,0,0,0,42.31,133.16Z"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <p id="login-error" class="login-error">Usuario o contraseña incorrectos</p>
+
+      <button type="submit" id="login-submit" class="btn btn-primary btn-block">Iniciar sesión</button>
+    </form>
+  </div>
+
+  <p class="login-footer">CastleCSR © 2026</p>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>

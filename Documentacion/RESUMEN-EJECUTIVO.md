@@ -2,7 +2,7 @@
 
 ## ¿Qué hemos creado?
 
-✅ **FASE 1 COMPLETADA** - Has recibido un backend de CastleCSR **totalmente funcional** con **protección de secretos** integrada. El proyecto está listo para las Fases 2-5 de desarrollo.
+✅ **FASE 2 COMPLETADA** - Backend de CastleCSR **totalmente funcional** con **autenticación JWT** (Nimbus JOSE+JWT, cookie HttpOnly) y **protección de secretos** integrada. El proyecto está listo para la Fase 3 (generación de CSR).
 
 ---
 
@@ -13,8 +13,10 @@
 | Archivo | Propósito |
 |---------|-----------|
 | `castlecsr-plan-backend.md` | 📋 Plan maestro: 5 fases, árbol del proyecto, cronograma |
-| `FASE-1-CHECKLIST.md` | ✅ Checklist detallado paso a paso (14 secciones) |
-| `README-BACKEND.md` | 📚 Documentación completa: instalación, API, testing |
+| `ESTADO-ACTUAL.md` | ⭐ Estado actual del proyecto y cómo ejecutarlo |
+| `estructura-base-datos-CastleCSR.md` | 🗄️ Estructura de BD, DDL y seed data |
+| `FASE-2-Plan_de_Trabajo_Nimbus_JOSE_JWT_v2.md` | 🔐 Diseño de la autenticación JWT (implementado) |
+| `README-PROYECTO-ACTUAL.md` (raíz) | 📚 Guía rápida: instalación, configuración, ejecución |
 
 ### 2. **Configuración Maven**
 
@@ -239,11 +241,13 @@ FASE 1: Scaffold + BD (✅ COMPLETADA)
 ├─ Tag: v1.0.0-phase1 ✅
 └─ Estado: Merge al main completado
 
-FASE 2: Autenticación (1 semana)
-├─ Login real con sesiones
-├─ Spring Security configurado
-├─ Frontend login.html integrado
-└─ Tag: v1.0.0-phase2
+FASE 2: Autenticación (✅ COMPLETADA)
+├─ Login real con JWT (Nimbus JOSE+JWT, HS512) ✅
+├─ Token en cookie HttpOnly (SameSite=Strict, 30 min) ✅
+├─ Spring Security stateless configurado ✅
+├─ Frontend login.html integrado; index.html protegido ✅
+├─ 33 tests (unitarios + integración) pasando ✅
+└─ Tag: v1.0.0-phase2 (pendiente de crear)
 
 FASE 3: Generación de CSR (2 semanas)
 ├─ BouncyCastle generando CSR real

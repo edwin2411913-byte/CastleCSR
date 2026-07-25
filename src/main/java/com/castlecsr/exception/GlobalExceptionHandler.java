@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -70,6 +72,31 @@ public class GlobalExceptionHandler {
 
         logger.error("Unexpected error: ", ex);
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex) {
+        // Mensaje genérico: no revelar si falló el username o el password
+        ErrorResponse error = new ErrorResponse(401, "Unauthorized", "Credenciales inválidas");
+        return ResponseEntity.status(401).body(error);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
+        ErrorResponse error = new ErrorResponse(403, "Forbidden", "Acceso denegado");
+        return ResponseEntity.status(403).body(error);
+    }
+
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidToken(InvalidTokenException ex) {
+        ErrorResponse error = new ErrorResponse(401, "Unauthorized", "Token inválido");
+        return ResponseEntity.status(401).body(error);
+    }
+
+    @ExceptionHandler(ExpiredTokenException.class)
+    public ResponseEntity<ErrorResponse> handleExpiredToken(ExpiredTokenException ex) {
+        ErrorResponse error = new ErrorResponse(401, "Unauthorized", "Token expirado");
+        return ResponseEntity.status(401).body(error);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

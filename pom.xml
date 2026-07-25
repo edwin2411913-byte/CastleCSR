@@ -45,6 +45,13 @@
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 
+		<!-- Nimbus JOSE+JWT (Fase 2 - Autenticación JWT) -->
+		<dependency>
+			<groupId>com.nimbusds</groupId>
+			<artifactId>nimbus-jose-jwt</artifactId>
+			<version>9.25.6</version>
+		</dependency>
+
 		<!-- Spring Validation -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -80,6 +87,13 @@
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- MockMvc autoconfiguration para tests (Boot 4 lo separó del starter-test) -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webmvc-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 
