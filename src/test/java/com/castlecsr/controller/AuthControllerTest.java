@@ -5,6 +5,7 @@ import com.castlecsr.model.Usuario;
 import com.castlecsr.security.CookieUtil;
 import com.castlecsr.security.CustomUserDetailsService;
 import com.castlecsr.security.JwtTokenProvider;
+import com.castlecsr.security.LoginRateLimiter;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,8 +43,10 @@ class AuthControllerTest {
 
     @BeforeEach
     void setUp() {
+        // Rate limiter real con límites amplios: no interfiere con los tests existentes
         AuthController controller = new AuthController(
-                authenticationManager, userDetailsService, jwtTokenProvider, cookieUtil);
+                authenticationManager, userDetailsService, jwtTokenProvider, cookieUtil,
+                new LoginRateLimiter(100, 300));
         // Se registra GlobalExceptionHandler para probar el código de estado real
         // que produce BadCredentialsException (401) en el flujo completo
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
@@ -125,6 +128,32 @@ class AuthControllerTest {
 
         mockMvc.perform(get("/api/auth/session"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void login_conRateLimitSuperado_devuelve429ConRetryAfter() throws Exception {
+        // Controller con límite de 2 intentos para provocar el bloqueo
+        AuthController controller = new AuthController(
+                authenticationManager, userDetailsService, jwtTokenProvider, cookieUtil,
+                new LoginRateLimiter(2, 300));
+        MockMvc mvc = MockMvcBuilders.standaloneSetup(controller)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
+
+        when(authenticationManager.authenticate(any()))
+                .thenThrow(new BadCredentialsException("Credenciales inválidas"));
+
+        String body = "{\"username\":\"jgomez\",\"password\":\"malPassword\"}";
+
+        mvc.perform(post("/api/auth/login").contentType("application/json").content(body))
+                .andExpect(status().isUnauthorized());
+        mvc.perform(post("/api/auth/login").contentType("application/json").content(body))
+                .andExpect(status().isUnauthorized());
+
+        // Tercer intento: la IP ya está bloqueada
+        mvc.perform(post("/api/auth/login").contentType("application/json").content(body))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(header().exists("Retry-After"));
     }
 
     @Test

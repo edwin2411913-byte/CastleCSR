@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CsrHistorialRepository extends JpaRepository<CsrHistorial, Long> {
@@ -16,4 +17,9 @@ public interface CsrHistorialRepository extends JpaRepository<CsrHistorial, Long
     List<CsrHistorial> findByUsuarioIdOrderByCreadoEnDesc(Long usuarioId);
 
     List<CsrHistorial> findByCommonNameContainingAndUsuarioId(String commonName, Long usuarioId);
+
+    Page<CsrHistorial> findByUsuarioIdAndCommonNameContainingIgnoreCaseOrderByCreadoEnDesc(
+            Long usuarioId, String commonName, Pageable pageable);
+
+    Optional<CsrHistorial> findByIdAndUsuarioId(Long id, Long usuarioId);
 }

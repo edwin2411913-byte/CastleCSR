@@ -2,6 +2,7 @@ package com.castlecsr.service;
 
 import com.castlecsr.dto.CsrGenerationRequest;
 import com.castlecsr.dto.CsrGenerationResponse;
+import com.castlecsr.dto.CsrHistorialResponse;
 import com.castlecsr.exception.CryptographyException;
 import com.castlecsr.exception.CsrGenerationException;
 import com.castlecsr.model.CsrHistorial;
@@ -11,6 +12,10 @@ import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x509.GeneralName;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -90,6 +95,48 @@ public class CsrService {
             // La contraseña se sobrescribe; la clave privada solo vive en la respuesta cifrada
             Arrays.fill(password, '\0');
         }
+    }
+
+    /** Historial paginado del usuario, opcionalmente filtrado por CN (case-insensitive). */
+    @Transactional(readOnly = true)
+    public Page<CsrHistorialResponse> getHistorial(Long usuarioId, int page, int size, String search) {
+        if (page < 0) {
+            throw new IllegalArgumentException("page debe ser mayor o igual a 0");
+        }
+        if (size < 1 || size > 100) {
+            throw new IllegalArgumentException("size debe estar entre 1 y 100");
+        }
+        if (search != null && search.length() > 64) {
+            throw new IllegalArgumentException("search no puede exceder 64 caracteres");
+        }
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<CsrHistorial> historial;
+        if (search == null || search.isBlank()) {
+            historial = csrHistorialRepository.findByUsuarioIdOrderByCreadoEnDesc(usuarioId, pageable);
+        } else {
+            historial = csrHistorialRepository
+                    .findByUsuarioIdAndCommonNameContainingIgnoreCaseOrderByCreadoEnDesc(
+                            usuarioId, search.trim(), pageable);
+        }
+        return historial.map(this::convertToCsrHistorialResponse);
+    }
+
+    /** Detalle de un CSR: 404 (EntityNotFoundException) si no existe o no pertenece al usuario. */
+    @Transactional(readOnly = true)
+    public CsrHistorialResponse getCsrDetails(Long csrId, Long usuarioId) {
+        CsrHistorial csr = csrHistorialRepository.findByIdAndUsuarioId(csrId, usuarioId)
+                .orElseThrow(() -> new EntityNotFoundException("CSR no encontrado"));
+        return convertToCsrHistorialResponse(csr);
+    }
+
+    private CsrHistorialResponse convertToCsrHistorialResponse(CsrHistorial csr) {
+        return new CsrHistorialResponse(
+                csr.getId(),
+                csr.getCommonName(),
+                csr.getOrganizacion(),
+                csr.getAlgoritmo() + "-" + csr.getTamanioOCurva(),
+                csr.getCreadoEn());
     }
 
     private void validateRequest(CsrGenerationRequest request) {

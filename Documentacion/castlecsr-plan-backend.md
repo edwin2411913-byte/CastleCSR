@@ -1,8 +1,9 @@
+
 # CastleCSR — Plan de Trabajo Backend
 
 ## 📋 Resumen ejecutivo
 
-**STATUS:** ✅ **FASE 1 COMPLETADA** - Backend totalmente funcional
+**STATUS:** ✅ **FASES 1–5 COMPLETADAS** - Proyecto completo (ver `FASE5-COMPLETADA.md`)
 
 Este documento detalla el plan de desarrollo del backend de **CastleCSR** en **5 fases medianas**. Cada fase:
 - ✅ Produce un **entregable funcional y probado**

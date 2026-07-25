@@ -2,10 +2,13 @@ package com.castlecsr.controller;
 
 import com.castlecsr.dto.LoginRequest;
 import com.castlecsr.dto.SessionResponse;
+import com.castlecsr.exception.RateLimitExceededException;
 import com.castlecsr.model.Usuario;
 import com.castlecsr.security.CookieUtil;
 import com.castlecsr.security.CustomUserDetailsService;
 import com.castlecsr.security.JwtTokenProvider;
+import com.castlecsr.security.LoginRateLimiter;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
@@ -31,24 +34,35 @@ public class AuthController {
     private final CustomUserDetailsService userDetailsService;
     private final JwtTokenProvider jwtTokenProvider;
     private final CookieUtil cookieUtil;
+    private final LoginRateLimiter loginRateLimiter;
 
     public AuthController(AuthenticationManager authenticationManager,
                           CustomUserDetailsService userDetailsService,
                           JwtTokenProvider jwtTokenProvider,
-                          CookieUtil cookieUtil) {
+                          CookieUtil cookieUtil,
+                          LoginRateLimiter loginRateLimiter) {
         this.authenticationManager = authenticationManager;
         this.userDetailsService = userDetailsService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.cookieUtil = cookieUtil;
+        this.loginRateLimiter = loginRateLimiter;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest request,
+                                      HttpServletRequest httpRequest) {
+        String clientIp = httpRequest.getRemoteAddr();
+        if (loginRateLimiter.isBlocked(clientIp)) {
+            throw new RateLimitExceededException(loginRateLimiter.retryAfterSeconds(clientIp));
+        }
+
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword())
             );
+            loginRateLimiter.recordSuccess(clientIp);
         } catch (AuthenticationException ex) {
+            loginRateLimiter.recordFailure(clientIp);
             // Mensaje genérico: no revelar si falló el username o el password
             throw new BadCredentialsException("Credenciales inválidas");
         }

@@ -1,6 +1,7 @@
 package com.castlecsr.exception;
 
 import com.castlecsr.dto.ErrorResponse;
+import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -112,6 +113,23 @@ public class GlobalExceptionHandler {
         ErrorResponse error = new ErrorResponse(500, "Internal Server Error", "Error criptográfico");
         logger.error("Cryptography error: ", ex);
         return ResponseEntity.status(500).body(error);
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleEntityNotFound(EntityNotFoundException ex) {
+        // 404 también cuando el recurso pertenece a otro usuario: no revelar su existencia
+        ErrorResponse error = new ErrorResponse(404, "Not Found",
+                ex.getMessage() != null ? ex.getMessage() : "Recurso no encontrado");
+        return ResponseEntity.status(404).body(error);
+    }
+
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<ErrorResponse> handleRateLimitExceeded(RateLimitExceededException ex) {
+        ErrorResponse error = new ErrorResponse(429, "Too Many Requests", ex.getMessage());
+        logger.warn("Login rate limit exceeded");
+        return ResponseEntity.status(429)
+                .header("Retry-After", String.valueOf(ex.getRetryAfterSeconds()))
+                .body(error);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

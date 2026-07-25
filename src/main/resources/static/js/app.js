@@ -82,10 +82,11 @@
     }).catch(function () {});
   
     function loadHistory() {
-      fetch('/api/csr/historial').then(function (res) {
-        return res.ok ? res.json() : [];
-      }).then(function (list) {
-        renderHistory(Array.isArray(list) ? list : []);
+      fetch('/api/csr/historial?page=0&size=20').then(function (res) {
+        return res.ok ? res.json() : null;
+      }).then(function (data) {
+        const list = data && Array.isArray(data.content) ? data.content : [];
+        renderHistory(list);
       }).catch(function () {
         renderHistory([]);
       });
@@ -103,10 +104,10 @@
       rows.forEach(function (row) {
         const tr = document.createElement('tr');
         tr.innerHTML = '<td></td><td></td><td></td><td></td>';
-        tr.children[0].textContent = row.fecha || '';
+        tr.children[0].textContent = (row.fechaGeneracion || '').replace('T', ' ').slice(0, 19);
         tr.children[1].textContent = row.cn || '';
-        tr.children[2].textContent = row.algo || '';
-        tr.children[3].textContent = row.org || '';
+        tr.children[2].textContent = row.algorithm || '';
+        tr.children[3].textContent = row.organization || '';
         historyBody.appendChild(tr);
       });
       historyTable.style.display = '';
