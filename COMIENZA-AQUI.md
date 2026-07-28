@@ -43,10 +43,13 @@ CREATE DATABASE castlecsr OWNER castlecsr_user;
 cp .env.example .env
 # Edita .env con tus credenciales
 
-# 3. Ejecutar
+# 3. Crear application-local.properties (REQUERIDO)
+cp src/main/resources/application-local.properties.example src/main/resources/application-local.properties
+
+# 4. Ejecutar
 ./mvnw spring-boot:run -Dspring-boot.run.arguments="--spring.profiles.active=local"
 
-# 4. Verificar
+# 5. Verificar
 curl http://localhost:8080/api/health
 ```
 

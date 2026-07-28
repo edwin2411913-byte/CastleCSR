@@ -9,7 +9,7 @@
 ## ⚡ En 5 minutos
 
 ```bash
-# 1. Configurar BD
+# 1. Configurar BD (si no existe)
 psql -U postgres
 CREATE USER castlecsr_user WITH PASSWORD 'castlecsr_password_123';
 CREATE DATABASE castlecsr OWNER castlecsr_user;
@@ -19,15 +19,18 @@ CREATE DATABASE castlecsr OWNER castlecsr_user;
 cp .env.example .env
 # Editar .env con tus credenciales
 
-# 3. Ejecutar
+# 3. Crear application-local.properties (REQUERIDO)
+cp src/main/resources/application-local.properties.example src/main/resources/application-local.properties
+
+# 4. Ejecutar
 ./mvnw spring-boot:run -Dspring-boot.run.arguments="--spring.profiles.active=local"
 # O en Windows: mvnw.cmd spring-boot:run ...
 
-# 4. Verificar
+# 5. Verificar
 curl http://localhost:8080/api/health
 # {"status":"OK",...}
 
-# 5. Login (Fase 2)
+# 6. Login (Fase 2)
 curl -i -c cookies.txt -X POST http://localhost:8080/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"tu_password"}'
@@ -161,6 +164,39 @@ JWT_SECRET=<generar con: openssl rand -base64 64>
 
 > ⚠️ **JWT_SECRET** debe ser un valor Base64 de al menos 64 bytes (requisito del algoritmo HS512). Generarlo con `openssl rand -base64 64`.
 
+### Paso 2.5: Configuración Local (application-local.properties)
+
+```bash
+# Copiar template de propiedades locales
+cp src/main/resources/application-local.properties.example src/main/resources/application-local.properties
+```
+
+**¿Qué hace este archivo?**
+
+Este archivo carga las variables del `.env` y configura Spring Boot para desarrollo local:
+
+```properties
+# Database - cargar desde .env
+spring.datasource.url=${DB_URL:jdbc:postgresql://localhost:5432/castlecsr}
+spring.datasource.username=${DB_USERNAME:castlecsr_user}
+spring.datasource.password=${DB_PASSWORD:castlecsr_password_123}
+
+# JWT - cargar secreto desde .env (REQUERIDO)
+jwt.secret=${JWT_SECRET:default-secret-change-me}
+jwt.expiration-ms=1800000
+jwt.cookie-secure=false
+
+# Hibernate - verbose en desarrollo
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+
+# Logging - DEBUG para desarrollo
+logging.level.com.castlecsr=DEBUG
+logging.level.org.springframework.security=DEBUG
+```
+
+> ⚠️ **IMPORTANTE**: Sin este archivo, la app fallará con: `Could not resolve placeholder 'jwt.secret'`
+
 ### Paso 3: Ejecutar Aplicación
 
 **Con Maven Wrapper (RECOMENDADO)**
@@ -207,6 +243,40 @@ curl -i -c cookies.txt -X POST http://localhost:8080/api/auth/login \
 curl -b cookies.txt http://localhost:8080/api/auth/session
 # → {"id":1,"username":"admin","rol":"ADMIN"}
 ```
+
+---
+
+## 🔧 Troubleshooting
+
+### ❌ Error: "Could not resolve placeholder 'jwt.secret'"
+
+**Causa**: Falta el archivo `application-local.properties`
+
+**Solución**:
+```bash
+cp src/main/resources/application-local.properties.example src/main/resources/application-local.properties
+```
+
+Luego intenta levantar la app nuevamente.
+
+### ❌ Error: "Base de datos no existe"
+
+**Causa**: No ejecutaste los comandos SQL para crear la BD y el usuario
+
+**Solución**:
+```bash
+psql -U postgres
+CREATE USER castlecsr_user WITH PASSWORD 'castlecsr_password_123';
+CREATE DATABASE castlecsr OWNER castlecsr_user;
+GRANT ALL PRIVILEGES ON DATABASE castlecsr TO castlecsr_user;
+\q
+```
+
+### ❌ Error: "Tablas no existen"
+
+**Causa**: BD creada pero sin las tablas (usuarios, csr_historial)
+
+**Solución**: Revisa `Documentacion/estructura-base-datos-CastleCSR.md` Sección 6 (DDL Completo) y ejecuta el script SQL para crear las tablas.
 
 ---
 
